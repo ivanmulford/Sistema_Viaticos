@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, TrendingUp, AlertTriangle, FileText, Download, Calendar, DollarSign, MapPin, User, Edit2, Trash2, Search, BarChart3, PieChart, Save, X } from 'lucide-react';
 import { BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxupMXGyzroks4vKw-IJIu_3M_tNMCyTru81tKbkEi3hEKcyT7fikQAfFUMITNbDeJm/exec';
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxX36kAbULXgE5XBgTYhsGPgbtZluHUGQ4Im1-YgGxi3vzJ1t3mZ5PusW0N0_6d0t3F/exec';
 
 const ViaticosSystem = () => {
   const [viajes, setViajes] = useState([]);
