@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, TrendingUp, AlertTriangle, FileText, Download, Calendar, DollarSign, MapPin, User, Edit2, Trash2, Search, BarChart3, PieChart, Save, X } from 'lucide-react';
+import { PlusCircle, TrendingUp, AlertTriangle, FileText, Download, Calendar, DollarSign, MapPin, User, Edit2, Trash2, Search, BarChart3, PieChart, Save, X, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const GOOGLE_API_KEY = 'AIzaSyDgCLvkaDKzR2JII0SwgAfw2ZN7-qORPQU'; // Del Google Cloud Console
-const SPREADSHEET_ID = '14hfwRIbXiqDuB7litwEYw9zgMurX9aXW5J1zkUx7ZKA'; // De la URL de tu hoja
-const SHEET_NAME = 'Hoja 1'; // Nombre de la pestaña
+// ========================================
+// CONFIGURACIÓN - CAMBIA ESTOS VALORES
+// ========================================
+const GOOGLE_API_KEY = 'AIzaSyDgCLvkaDKzR2JII0SwgAfw2ZN7-qORPQU'; // Paso 2: Pega tu API Key aquí
+const SPREADSHEET_ID = '14hfwRIbXiqDuB7litwEYw9zgMurX9aXW5J1zkUx7ZKA'; // Paso 3: Pega el ID de tu hoja aquí
+const SHEET_NAME = 'Hoja 1'; // Nombre de la pestaña en tu Google Sheet
 const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxX36kAbULXgE5XBgTYhsGPgbtZluHUGQ4Im1-YgGxi3vzJ1t3mZ5PusW0N0_6d0t3F/exec';
 
 const ViaticosSystem = () => {
@@ -26,32 +29,48 @@ const ViaticosSystem = () => {
   const [mostrarGraficos, setMostrarGraficos] = useState(false);
   const [cargandoDatos, setCargandoDatos] = useState(true);
 
-  // Cargar datos desde Google Sheets al inicio
+  // Cargar datos desde Google Sheets usando API v4
   const cargarDatosDesdeSheets = async () => {
-  setCargandoDatos(true);
-  try {
-    // Con Google Apps Script, usar no-cors es la única opción confiable
-    await fetch(WEBHOOK_URL, {
-      method: 'GET',
-      mode: 'no-cors',
-    });
+    setCargandoDatos(true);
+    try {
+      const range = `${SHEET_NAME}!A2:F`; // Leer desde fila 2 (asumiendo que fila 1 es header)
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${range}?key=${GOOGLE_API_KEY}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.values && data.values.length > 0) {
+        const viajesDesdeSheets = data.values.map((row, index) => ({
+          id: index + 2, // +2 porque empezamos en fila 2
+          fecha: row[0] || '',
+          proposito: row[1] || '',
+          responsable: row[2] || '',
+          municipio: row[3] || '',
+          valor: parseFloat(row[4]) || 0,
+          descripcion: row[5] || ''
+        }));
+        
+        setViajes(viajesDesdeSheets.reverse()); // Más recientes primero
+        console.log('✅ Datos cargados desde Google Sheets:', viajesDesdeSheets.length, 'viajes');
+      } else {
+        console.log('ℹ️ No hay datos en la hoja');
+        setViajes([]);
+      }
+    } catch (error) {
+      console.error('❌ Error al cargar datos:', error);
+      alert('⚠️ Error al cargar datos. Verifica tu API Key y Spreadsheet ID en el código.');
+      
+      // Datos de ejemplo como fallback
+      const datosIniciales = [
+        { fecha: '2025-05-08', proposito: 'PROCESO DE APERTURA', responsable: 'KAREN PAOLA VARGAS', municipio: 'CIENAGA', valor: 10000, descripcion: 'TRANSPORTE SANTA MARTA - CIENAGA', id: 1 },
+        { fecha: '2025-05-08', proposito: 'PROCESO DE APERTURA', responsable: 'KAREN PAOLA VARGAS', municipio: 'CIENAGA', valor: 10000, descripcion: 'TRANSPORTE CENTRO ZONAL', id: 2 },
+      ];
+      setViajes(datosIniciales);
+    } finally {
+      setCargandoDatos(false);
+    }
+  };
 
-    // Como no podemos leer la respuesta con no-cors, mostramos mensaje
-    console.log('✅ Solicitud enviada a Google Sheets');
-    
-  } catch (error) {
-    console.error('❌ Error al cargar datos desde Sheets:', error);
-    // Cargar datos de ejemplo como fallback
-    const datosIniciales = [
-      { fecha: '2025-05-08', proposito: 'PROCESO DE APERTURA', responsable: 'KAREN PAOLA VARGAS', municipio: 'CIENAGA', valor: 10000, descripcion: 'TRANSPORTE SANTA MARTA - CIENAGA', id: 1 },
-      { fecha: '2025-05-08', proposito: 'PROCESO DE APERTURA', responsable: 'KAREN PAOLA VARGAS', municipio: 'CIENAGA', valor: 10000, descripcion: 'TRANSPORTE CENTRO ZONAL', id: 2 },
-      // ... resto de datos de ejemplo ...
-    ];
-    setViajes(datosIniciales);
-  } finally {
-    setCargandoDatos(false);
-  }
-};
   useEffect(() => {
     cargarDatosDesdeSheets();
     setMontoAprobado({ 'KAREN PAOLA VARGAS': 800000 });
@@ -73,6 +92,7 @@ const ViaticosSystem = () => {
     };
 
     try {
+      // Enviar a Google Apps Script (para escribir)
       await fetch(WEBHOOK_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -83,7 +103,11 @@ const ViaticosSystem = () => {
       });
 
       alert('✅ ¡Registro enviado a Google Sheets!');
+      
+      // Actualizar estado local
       setViajes([viajeParaEnviar, ...viajes]); 
+      
+      // Limpiar formulario
       setFormulario({
         fecha: '',
         proposito: '',
@@ -93,9 +117,14 @@ const ViaticosSystem = () => {
         descripcion: ''
       });
 
+      // Recargar datos después de 2 segundos
+      setTimeout(() => {
+        cargarDatosDesdeSheets();
+      }, 2000);
+
     } catch (error) {
-      alert('⚠️ Error de conexión. Verifica tu URL del webhook.');
-      console.error('Error de red/fetch:', error);
+      alert('⚠️ Error de conexión.');
+      console.error('Error:', error);
     } finally {
       setCargando(false); 
     }
@@ -129,7 +158,7 @@ const ViaticosSystem = () => {
       valor: '',
       descripcion: ''
     });
-    alert('✅ Viaje actualizado exitosamente');
+    alert('✅ Viaje actualizado (solo localmente)');
   };
 
   const cancelarEdicion = () => {
@@ -145,9 +174,9 @@ const ViaticosSystem = () => {
   };
 
   const eliminarViaje = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este viaje?')) {
+    if (window.confirm('¿Estás seguro de eliminar este viaje? (Solo se eliminará localmente)')) {
       setViajes(viajes.filter(v => v.id !== id));
-      alert('🗑️ Viaje eliminado');
+      alert('🗑️ Viaje eliminado localmente');
     }
   };
 
@@ -194,7 +223,6 @@ const ViaticosSystem = () => {
     return cumpleFiltroPersona && cumpleFiltroMes && cumpleBusqueda;
   });
 
-  // Datos para gráficos
   const datosGraficoBarras = personasFiltradas.map(persona => ({
     nombre: persona.split(' ')[0] + ' ' + persona.split(' ')[1],
     Transportes: estadisticas[persona].transportes,
@@ -270,14 +298,33 @@ const ViaticosSystem = () => {
               <button
                 onClick={cargarDatosDesdeSheets}
                 disabled={cargandoDatos}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm disabled:bg-gray-400"
               >
-                <Download className="w-4 h-4" />
+                <RefreshCw className={`w-4 h-4 ${cargandoDatos ? 'animate-spin' : ''}`} />
                 {cargandoDatos ? 'Sincronizando...' : 'Sincronizar con Sheets'}
               </button>
             </div>
           </div>
         </div>
+
+        {/* Alerta de configuración */}
+        {(GOOGLE_API_KEY === 'TU_API_KEY_AQUI' || SPREADSHEET_ID === 'TU_SPREADSHEET_ID_AQUI') && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div className="flex">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">Configuración pendiente</h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <p>Para habilitar la sincronización con Google Sheets, configura:</p>
+                  <ul className="list-disc list-inside mt-1">
+                    <li>GOOGLE_API_KEY (línea 6 del código)</li>
+                    <li>SPREADSHEET_ID (línea 7 del código)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Búsqueda Avanzada */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
