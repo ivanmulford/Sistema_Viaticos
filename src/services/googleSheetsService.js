@@ -130,7 +130,7 @@ class GoogleSheetsService {
   processUsers(data) {
     return data.map((row, index) => ({
       id: index + 1,
-      nombre: row[1] || '',
+      nombre: row[0] || '',
       email: row[1] || '',
       cargo: row[2] || '',
       departamento: row[3] || '',
