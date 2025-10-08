@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, TrendingUp, AlertTriangle, FileText, Download, Calendar, DollarSign, MapPin, User, Edit2, Trash2, Search, BarChart3, PieChart, Save, X } from 'lucide-react';
 import { BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+const GOOGLE_API_KEY = 'AIzaSyDgCLvkaDKzR2JII0SwgAfw2ZN7-qORPQU'; // Del Google Cloud Console
+const SPREADSHEET_ID = '14hfwRIbXiqDuB7litwEYw9zgMurX9aXW5J1zkUx7ZKA'; // De la URL de tu hoja
+const SHEET_NAME = 'Hoja 1'; // Nombre de la pestaña
 const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxX36kAbULXgE5XBgTYhsGPgbtZluHUGQ4Im1-YgGxi3vzJ1t3mZ5PusW0N0_6d0t3F/exec';
 
 const ViaticosSystem = () => {
