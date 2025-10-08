@@ -1,8 +1,12 @@
+import React from 'react';
 import ViaticosSystem from './ViaticosSystem';
+import './index.css';
 
 function App() {
   return (
-    <ViaticosSystem />
+    <div className="App">
+      <ViaticosSystem />
+    </div>
   );
 }
 
