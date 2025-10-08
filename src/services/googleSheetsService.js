@@ -55,7 +55,7 @@ class GoogleSheetsService {
     try {
       const data = await this.readRange('Usuarios!A2:F');
       return data.map((row, index) => ({
-        id: index + 1,
+        id: index + ,
         nombre: row[0] || '',
         email: row[1] || '',
         cargo: row[2] || '',
