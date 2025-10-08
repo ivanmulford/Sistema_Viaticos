@@ -15,7 +15,7 @@ const Dashboard = ({ users, trips, expenses }) => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'COP'
     }).format(amount);
   };
 
